@@ -248,12 +248,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76fa23b9123c64c209117bb6268ec7fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Elements.UI::Elements.UI.GameInstaller
-  _levelView: {fileID: 1717738917}
+  _levelView: {fileID: 1034947657}
   _hudView: {fileID: 853415686}
   _soLevelContainer: {fileID: 11400000, guid: 2f1e8abd1af024a8486b4c947fe5194a, type: 2}
   _blockPrefabConfig: {fileID: 11400000, guid: 8069b55d2d0ce4eef81dcc800bc4dbfc, type: 2}
   _blockPoolRoot: {fileID: 316902259}
   _swipeInputProvider: {fileID: 1034947656}
+  _camera: {fileID: 519420031}
+  _gridLayoutConfig: {fileID: 11400000, guid: 51038feae337e48de9f7f558dc99f75f, type: 2}
+  _blockPoolWarmupSize: 8
 --- !u!114 &169945178
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -925,6 +928,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1034947654}
+  - component: {fileID: 1034947657}
   - component: {fileID: 1034947656}
   m_Layer: 0
   m_Name: Level
@@ -964,6 +968,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Elements.SwipeInput::Elements.SwipeInput.SwipeInputProvider
   _swipeThresholdPixels: 30
+--- !u!114 &1034947657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1034947653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46f0eb1df7bea428f9b8fb8a5ab9e95b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Elements.UI::Elements.UI.GameFieldView
+  _blockContainer: {fileID: 1717738916}
 --- !u!1 &1150584035
 GameObject:
   m_ObjectHideFlags: 0
@@ -1352,9 +1369,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1717738916}
-  - component: {fileID: 1717738917}
   m_Layer: 0
-  m_Name: Field
+  m_Name: Container
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1375,20 +1391,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1034947654}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1717738917
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1717738915}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 46f0eb1df7bea428f9b8fb8a5ab9e95b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Elements.UI::Elements.UI.GameFieldView
-  _gridRoot: {fileID: 1717738916}
-  _camera: {fileID: 519420031}
 --- !u!1 &1762030858
 GameObject:
   m_ObjectHideFlags: 0

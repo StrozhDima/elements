@@ -67,9 +67,9 @@ namespace Elements.Level
         {
             for (var i = 0; i < count; i++)
             {
-                var go = Object.Instantiate(_config.GetPrefab(type), _poolRoot);
-                go.SetActive(false);
-                pool.Enqueue(go.GetComponent<BlockView>());
+                var instance = Object.Instantiate(_config.GetPrefab(type), _poolRoot);
+                instance.SetActive(false);
+                pool.Enqueue(instance.GetComponent<BlockView>());
             }
         }
     }

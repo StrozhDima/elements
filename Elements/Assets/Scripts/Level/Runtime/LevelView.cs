@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -9,51 +10,38 @@ namespace Elements.Level
 {
     public sealed class LevelView : MonoBehaviour, ILevelView
     {
-        private const float GridHeightFraction = 0.70f;
-        private const float GridBottomOffsetFraction = 0.10f;
-
         [SerializeField]
-        private Transform _gridRoot;
-        [SerializeField]
-        private Camera _camera;
+        private Transform _blockContainer;
 
+        private IGridLayout _gridLayout;
         private IBlockViewFactory _blockViewFactory;
         private IBlockView[,] _blockViews;
         private BlockType?[,] _blockTypes;
         private int _width;
-        private int _height;
-        private float _worldCellSize;
-        private Vector2 _gridOrigin;
 
         [Inject]
-        public void Construct(IBlockViewFactory blockViewFactory) => _blockViewFactory = blockViewFactory;
+        public void Construct(
+            IGridLayout gridLayout,
+            IBlockViewFactory blockViewFactory)
+        {
+            _gridLayout = gridLayout;
+            _blockViewFactory = blockViewFactory;
+        }
 
-        public void InitializeGrid(int width, int height)
+        void ILevelView.Setup(int width, int height)
         {
             _width = width;
-            _height = height;
 
             if (_blockViews != null)
             {
-                for (var col = 0; col < _blockViews.GetLength(0); col++)
-                {
-                    for (var row = 0; row < _blockViews.GetLength(1); row++)
-                    {
-                        if (_blockViews[col, row] != null)
-                        {
-                            _blockViewFactory.Release(_blockViews[col, row]);
-                        }
-                    }
-                }
+                ReleaseBlockViews();
             }
 
-            _blockViews = new IBlockView[width, height];
-            _blockTypes = new BlockType?[width, height];
-
-            ComputeLayout(width, height);
+            PrepareData(width, height);
+            _gridLayout.Compute(width, height);
         }
 
-        public void RefreshBlock(int col, int row, BlockType? type)
+        void ILevelView.RefreshBlock(int col, int row, BlockType? type)
         {
             if (_blockTypes == null || _blockTypes[col, row] == type)
             {
@@ -73,15 +61,15 @@ namespace Elements.Level
                 return;
             }
 
-            var view = _blockViewFactory.Get(type.Value, _gridRoot);
-            view.SetLocalPosition(GetCellLocalPosition(col, row));
-            view.SetLocalScale(_worldCellSize);
+            var view = _blockViewFactory.Get(type.Value, _blockContainer);
+            view.SetLocalPosition(_gridLayout.GetCellLocalPosition(col, row));
+            view.SetLocalScale(_gridLayout.CellSize);
             view.SetSortingOrder(row * _width + col);
 
             _blockViews[col, row] = view;
         }
 
-        public void SwapBlocks(int colA, int rowA, int colB, int rowB)
+        void ILevelView.SwapBlocks(int colA, int rowA, int colB, int rowB)
         {
             (_blockViews[colA, rowA], _blockViews[colB, rowB]) = (_blockViews[colB, rowB], _blockViews[colA, rowA]);
             (_blockTypes[colA, rowA], _blockTypes[colB, rowB]) = (_blockTypes[colB, rowB], _blockTypes[colA, rowA]);
@@ -90,17 +78,10 @@ namespace Elements.Level
             UpdateBlockTransform(colB, rowB);
         }
 
-        public bool TryGetCellAtScreen(Vector2 screenPos, out int col, out int row)
-        {
-            var worldPos = (Vector2)_camera.ScreenToWorldPoint(
-                new Vector3(screenPos.x, screenPos.y, 0f));
+        bool ILevelView.TryGetCellAtScreen(Vector2 screenPos, out int col, out int row) =>
+            _gridLayout.TryGetCellAtScreen(screenPos, out col, out row);
 
-            col = Mathf.RoundToInt((worldPos.x - _gridOrigin.x) / _worldCellSize);
-            row = Mathf.RoundToInt((worldPos.y - _gridOrigin.y) / _worldCellSize);
-            return col >= 0 && col < _width && row >= 0 && row < _height;
-        }
-
-        public async UniTask PlayDestroyAsync(IReadOnlyList<Vector2Int> cells, CancellationToken cancellationToken)
+        async UniTask INormalizationView.PlayDestroyAsync(IReadOnlyList<Vector2Int> cells, CancellationToken cancellationToken)
         {
             var tasks = new List<UniTask>();
 
@@ -120,7 +101,7 @@ namespace Elements.Level
             }
         }
 
-        public UniTask PlayFallAsync(Vector2Int from, Vector2Int to, CancellationToken cancellationToken)
+        UniTask INormalizationView.PlayFallAsync(Vector2Int from, Vector2Int to, CancellationToken cancellationToken)
         {
             var view = _blockViews[from.x, from.y];
             _blockViews[to.x, to.y] = view;
@@ -129,7 +110,39 @@ namespace Elements.Level
             _blockTypes[from.x, from.y] = null;
 
             view.SetSortingOrder(to.y * _width + to.x);
-            return view.PlayFallAsync(GetCellLocalPosition(to.x, to.y), cancellationToken);
+            return view.PlayFallAsync(_gridLayout.GetCellLocalPosition(to.x, to.y), cancellationToken);
+        }
+
+        private void ReleaseBlockViews()
+        {
+            for (var col = 0; col < _blockViews.GetLength(0); col++)
+            {
+                for (var row = 0; row < _blockViews.GetLength(1); row++)
+                {
+                    if (_blockViews[col, row] != null)
+                    {
+                        _blockViewFactory.Release(_blockViews[col, row]);
+                    }
+                }
+            }
+        }
+
+        private void PrepareData(int width, int height)
+        {
+            var needsResize = _blockViews == null
+                           || _blockViews.GetLength(0) != width
+                           || _blockViews.GetLength(1) != height;
+
+            if (needsResize)
+            {
+                _blockViews = new IBlockView[width, height];
+                _blockTypes = new BlockType?[width, height];
+            }
+            else
+            {
+                Array.Clear(_blockViews, 0, _blockViews.Length);
+                Array.Clear(_blockTypes, 0, _blockTypes.Length);
+            }
         }
 
         private void UpdateBlockTransform(int col, int row)
@@ -141,28 +154,8 @@ namespace Elements.Level
                 return;
             }
 
-            view.SetLocalPosition(GetCellLocalPosition(col, row));
+            view.SetLocalPosition(_gridLayout.GetCellLocalPosition(col, row));
             view.SetSortingOrder(row * _width + col);
         }
-
-        private void ComputeLayout(int cols, int rows)
-        {
-            var pixelsPerUnit = Screen.height / (_camera.orthographicSize * 2f);
-            var cellSizePixels = Mathf.Min(
-                (float)Screen.width / cols,
-                Screen.height * GridHeightFraction / rows);
-
-            _worldCellSize = cellSizePixels / pixelsPerUnit;
-
-            var gridWorldWidth = _worldCellSize * cols;
-            var bottomOffsetWorld = Screen.height * GridBottomOffsetFraction / pixelsPerUnit;
-
-            _gridOrigin = new Vector2(
-                -gridWorldWidth * 0.5f + _worldCellSize * 0.5f,
-                -_camera.orthographicSize + bottomOffsetWorld + _worldCellSize * 0.5f);
-        }
-
-        private Vector3 GetCellLocalPosition(int col, int row) =>
-            new(_gridOrigin.x + col * _worldCellSize, _gridOrigin.y + row * _worldCellSize, 0f);
     }
 }

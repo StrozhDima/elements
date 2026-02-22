@@ -1,7 +1,5 @@
-using System;
 using Elements.Common;
 using JetBrains.Annotations;
-using UniRx;
 using UnityEngine;
 
 namespace Elements.Level
@@ -9,15 +7,15 @@ namespace Elements.Level
     [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
     public sealed class LevelModel : ILevelModel
     {
+        private const int EmptyCellId = -1;
+
         private BlockType?[,] _cells;
         private BlockState[,] _states;
-        private readonly Subject<Unit> _onBoardChanged = new();
 
         private int Width { get; set; }
         int ILevelModel.Width => Width;
         private int Height { get; set; }
         int ILevelModel.Height => Height;
-        IObservable<Unit> ILevelModel.OnBoardChanged => _onBoardChanged;
 
         BlockType? ILevelModel.GetBlockType(int col, int row) => _cells[col, row];
 
@@ -47,14 +45,11 @@ namespace Elements.Level
             return true;
         }
 
-        public void NotifyChanged() => _onBoardChanged.OnNext(Unit.Default);
-
         bool ILevelModel.TryMove(int col, int row, Vector2Int direction)
         {
             var targetCol = col + direction.x;
             var targetRow = row + direction.y;
             (_cells[col, row], _cells[targetCol, targetRow]) = (_cells[targetCol, targetRow], _cells[col, row]);
-            NotifyChanged();
             return true;
         }
 
@@ -72,8 +67,6 @@ namespace Elements.Level
                     _cells[col, row] = data.GetCell(col, row);
                 }
             }
-
-            NotifyChanged();
         }
 
         void ILevelModel.LoadFromSave(GameSaveData saveData)
@@ -88,16 +81,10 @@ namespace Elements.Level
                 for (var row = 0; row < Height; row++)
                 {
                     var index = row * Width + col;
-                    _cells[col, row] = saveData.Cells[index] switch
-                    {
-                        0 => BlockType.Water,
-                        1 => BlockType.Fire,
-                        _ => null
-                    };
+                    var encoded = saveData.Cells[index];
+                    _cells[col, row] = encoded == EmptyCellId ? null : (BlockType)encoded;
                 }
             }
-
-            NotifyChanged();
         }
 
         GameSaveData ILevelModel.ToSaveData(int levelIndex)
@@ -108,12 +95,8 @@ namespace Elements.Level
             {
                 for (var row = 0; row < Height; row++)
                 {
-                    cells[row * Width + col] = _cells[col, row] switch
-                    {
-                        BlockType.Water => 0,
-                        BlockType.Fire => 1,
-                        _ => -1
-                    };
+                    var cell = _cells[col, row];
+                    cells[row * Width + col] = cell.HasValue ? (int)cell.Value : EmptyCellId;
                 }
             }
 

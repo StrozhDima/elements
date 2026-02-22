@@ -15,7 +15,7 @@ namespace Elements.Tests
         public void SetUp()
         {
             _level = new LevelModel();
-            _validator = new MoveValidator();
+            _validator = new MoveValidator(_level);
         }
 
         [Test]
@@ -48,7 +48,7 @@ namespace Elements.Tests
             // 1x2: Water at (0,0), empty at (0,1)
             SetupBoard(1, 2, new BlockType?[] { BlockType.Water, null });
 
-            var valid = _validator.IsValidMove(_level, 0, 0, Vector2Int.up);
+            var valid = _validator.IsValidMove(0, 0, Vector2Int.up);
 
             Assert.IsFalse(valid);
         }
@@ -59,7 +59,7 @@ namespace Elements.Tests
             // 1x2: Water at (0,0), Fire at (0,1)
             SetupBoard(1, 2, new BlockType?[] { BlockType.Water, BlockType.Fire });
 
-            var valid = _validator.IsValidMove(_level, 0, 0, Vector2Int.up);
+            var valid = _validator.IsValidMove(0, 0, Vector2Int.up);
 
             Assert.IsTrue(valid);
         }
@@ -70,7 +70,7 @@ namespace Elements.Tests
             SetupBoard(2, 1, new BlockType?[] { BlockType.Fire, BlockType.Water });
             _level.SetState(0, 0, BlockState.Falling);
 
-            var valid = _validator.IsValidMove(_level, 0, 0, Vector2Int.right);
+            var valid = _validator.IsValidMove(0, 0, Vector2Int.right);
 
             Assert.IsFalse(valid);
         }
@@ -81,7 +81,7 @@ namespace Elements.Tests
             SetupBoard(2, 1, new BlockType?[] { BlockType.Fire, BlockType.Water });
             _level.SetState(0, 0, BlockState.Destroying);
 
-            var valid = _validator.IsValidMove(_level, 0, 0, Vector2Int.right);
+            var valid = _validator.IsValidMove(0, 0, Vector2Int.right);
 
             Assert.IsFalse(valid);
         }

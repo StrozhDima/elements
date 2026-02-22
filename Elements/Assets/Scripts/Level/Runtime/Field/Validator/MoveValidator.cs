@@ -1,19 +1,21 @@
-using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Elements.Level
 {
-    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
     public sealed class MoveValidator : IMoveValidator
     {
-        bool IMoveValidator.IsValidMove(ILevelModel level, int col, int row, Vector2Int direction)
+        private readonly ILevelModel _levelModel;
+
+        public MoveValidator(ILevelModel levelModel) => _levelModel = levelModel;
+
+        bool IMoveValidator.IsValidMove(int col, int row, Vector2Int direction)
         {
-            if (!level.GetBlockType(col, row).HasValue)
+            if (!_levelModel.GetBlockType(col, row).HasValue)
             {
                 return false;
             }
 
-            var state = level.GetBlockState(col, row);
+            var state = _levelModel.GetBlockState(col, row);
 
             if (state is not BlockState.Idle)
             {
@@ -23,27 +25,23 @@ namespace Elements.Level
             var targetCol = col + direction.x;
             var targetRow = row + direction.y;
 
-            if (targetCol < 0 || targetCol >= level.Width)
+            if (targetCol < 0 || targetCol >= _levelModel.Width)
             {
                 return false;
             }
 
-            if (targetRow < 0 || targetRow >= level.Height)
+            if (targetRow < 0 || targetRow >= _levelModel.Height)
             {
                 return false;
             }
 
-            if (direction == Vector2Int.up && !level.GetBlockType(targetCol, targetRow).HasValue)
+            if (direction == Vector2Int.up && !_levelModel.GetBlockType(targetCol, targetRow).HasValue)
             {
                 return false;
             }
 
-            if (level.GetBlockState(targetCol, targetRow) is not BlockState.Idle)
-            {
-                return false;
-            }
-
-            return true;
+            var blockState = _levelModel.GetBlockState(targetCol, targetRow);
+            return blockState is BlockState.Idle;
         }
     }
 }

@@ -10,9 +10,11 @@ namespace Elements.Level
     [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
     public sealed class LevelPresenter : ILevelPresenter
     {
+        private const int FirstLevelIndex = 0;
+
         private readonly ILevelModel _level;
         private readonly ILevelView _fieldView;
-        private readonly IHUDView _hudView;
+        private readonly IHUDPresenter _hudPresenter;
         private readonly ILevelStateModel _state;
         private readonly ILevelDataProvider _dataProvider;
         private readonly ISaveService _saveService;
@@ -26,22 +28,20 @@ namespace Elements.Level
         public LevelPresenter(
             ILevelModel level,
             ILevelView fieldView,
-            IHUDView hudView,
+            IHUDPresenter hudPresenter,
             ILevelStateModel state,
             ILevelDataProvider dataProvider,
             ISaveService saveService,
-            IMoveValidator moveValidator,
-            INormalizationSystem normalization,
             ISwipeInputProvider inputProvider)
         {
             _level = level;
             _fieldView = fieldView;
-            _hudView = hudView;
+            _hudPresenter = hudPresenter;
             _state = state;
             _dataProvider = dataProvider;
             _saveService = saveService;
-            _moveValidator = moveValidator;
-            _normalization = normalization;
+            _moveValidator = new MoveValidator(level);
+            _normalization = new NormalizationSystem(fieldView);
             _inputProvider = inputProvider;
             _disposables = new CompositeDisposable();
         }
@@ -50,7 +50,8 @@ namespace Elements.Level
         {
             InitializeLevelState();
             InitializeField();
-            InitializeHUDView();
+            _hudPresenter.RestartRequested.Subscribe(_ => OnRestartRequested()).AddTo(_disposables);
+            _hudPresenter.NextLevelRequested.Subscribe(_ => OnNextLevelRequested()).AddTo(_disposables);
             InitializeInput();
         }
 
@@ -75,22 +76,14 @@ namespace Elements.Level
             }
             else
             {
-                LoadLevel(0);
+                LoadLevel(FirstLevelIndex);
             }
         }
 
         private void InitializeField()
         {
-            _fieldView.InitializeGrid(_level.Width, _level.Height);
+            _fieldView.Setup(_level.Width, _level.Height);
             RefreshAllBlocks();
-        }
-
-        private void InitializeHUDView()
-        {
-            _hudView.Initialize();
-            _state.LevelIndex.Subscribe(index => _hudView.SetLevelIndex(index)).AddTo(_disposables);
-            _hudView.RestartClicked.Subscribe(_ => OnRestartClicked()).AddTo(_disposables);
-            _hudView.NextClicked.Subscribe(_ => OnNextClicked()).AddTo(_disposables);
         }
 
         private void InitializeInput() => _inputProvider.Swiped.Subscribe(HandleInputSwipe).AddTo(_disposables);
@@ -107,7 +100,7 @@ namespace Elements.Level
 
         private void HandleSwipe(int col, int row, Vector2Int direction)
         {
-            if (!_moveValidator.IsValidMove(_level, col, row, direction))
+            if (!_moveValidator.IsValidMove(col, row, direction))
             {
                 return;
             }
@@ -136,14 +129,14 @@ namespace Elements.Level
             }
         }
 
-        private void OnRestartClicked()
+        private void OnRestartRequested()
         {
             CancelNormalization();
             _state.SetNormalizing(false);
             RestartLevel();
         }
 
-        private void OnNextClicked()
+        private void OnNextLevelRequested()
         {
             CancelNormalization();
             _state.SetNormalizing(false);

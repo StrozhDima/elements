@@ -8,20 +8,27 @@ namespace Elements.Level
     [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
     public sealed class LevelEntryPoint : IInitializable, IDisposable
     {
-        private const int BlockPoolWarmupSize = 8;
-
         private readonly ILevelPresenter _presenter;
+        private readonly IHUDPresenter _hudPresenter;
         private readonly IBlockViewFactory _blockViewFactory;
+        private readonly int _blockPoolWarmupSize;
 
-        public LevelEntryPoint(ILevelPresenter presenter, IBlockViewFactory blockViewFactory)
+        public LevelEntryPoint(
+            ILevelPresenter presenter,
+            IHUDPresenter hudPresenter,
+            IBlockViewFactory blockViewFactory,
+            int blockPoolWarmupSize)
         {
             _presenter = presenter;
+            _hudPresenter = hudPresenter;
             _blockViewFactory = blockViewFactory;
+            _blockPoolWarmupSize = blockPoolWarmupSize;
         }
 
         void IInitializable.Initialize()
         {
-            _blockViewFactory.Initialize(BlockPoolWarmupSize);
+            _blockViewFactory.Initialize(_blockPoolWarmupSize);
+            _hudPresenter.Initialize();
             _presenter.Initialize();
             Application.quitting += OnApplicationQuitting;
         }

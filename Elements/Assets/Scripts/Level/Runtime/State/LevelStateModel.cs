@@ -7,7 +7,7 @@ namespace Elements.Level
     public sealed class LevelStateModel : ILevelStateModel
     {
         private readonly ReactiveProperty<int> _levelIndex = new(0);
-         private readonly ReactiveProperty<bool> _isNormalizing = new(false);
+        private readonly ReactiveProperty<bool> _isNormalizing = new(false);
 
         IReadOnlyReactiveProperty<int> ILevelStateModel.LevelIndex => _levelIndex;
         IReadOnlyReactiveProperty<bool> ILevelStateModel.IsNormalizing => _isNormalizing;

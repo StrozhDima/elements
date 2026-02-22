@@ -2,12 +2,10 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elements.Common;
-using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Elements.Level
 {
-    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
     public sealed class NormalizationSystem : INormalizationSystem
     {
         private readonly INormalizationView _view;
@@ -29,8 +27,6 @@ namespace Elements.Level
                             level.SetState(fall.to.x, row, BlockState.Falling);
                         }
                     }
-
-                    level.NotifyChanged();
 
                     var fallTasks = new UniTask[falls.Count];
 
@@ -62,16 +58,12 @@ namespace Elements.Level
                     level.SetState(cell.x, cell.y, BlockState.Destroying);
                 }
 
-                level.NotifyChanged();
-
                 await _view.PlayDestroyAsync(destroyCells, cancellationToken);
 
                 foreach (var cell in destroyCells)
                 {
                     level.SetCell(cell.x, cell.y, null);
                 }
-
-                level.NotifyChanged();
             }
         }
 

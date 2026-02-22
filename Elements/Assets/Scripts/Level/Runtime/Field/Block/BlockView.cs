@@ -9,14 +9,17 @@ namespace Elements.Level
     public sealed class BlockView : MonoBehaviour, IBlockView
     {
         private const float DestroyAnimationDuration = 1.42f;
-        private const float FallDuration = 0.25f;
 
-        private static readonly int _destroyHash = Animator.StringToHash("Destroy");
+        private static readonly int _destroyAnimHash = Animator.StringToHash("Destroy");
 
         [SerializeField]
         private Animator _animator;
         [SerializeField]
         private SpriteRenderer _spriteRenderer;
+        [SerializeField]
+        private float _fallDuration = 0.25f;
+        [SerializeField]
+        private Ease _fallEase = Ease.InQuad;
 
         void IBlockView.SetLocalPosition(Vector3 position) => transform.localPosition = position;
 
@@ -25,13 +28,11 @@ namespace Elements.Level
         void IBlockView.SetSortingOrder(int order) => _spriteRenderer.sortingOrder = order;
 
         UniTask IBlockView.PlayFallAsync(Vector3 targetLocalPosition, CancellationToken cancellationToken)
-            => transform.DOLocalMove(targetLocalPosition, FallDuration)
-                .SetEase(Ease.InQuad)
-                .WithCancellation(cancellationToken);
+            => transform.DOLocalMove(targetLocalPosition, _fallDuration).SetEase(_fallEase).WithCancellation(cancellationToken);
 
         async UniTask IBlockView.PlayDestroyAsync(CancellationToken cancellationToken)
         {
-            _animator.SetTrigger(_destroyHash);
+            _animator.SetTrigger(_destroyAnimHash);
             await UniTask.Delay(TimeSpan.FromSeconds(DestroyAnimationDuration), cancellationToken: cancellationToken);
         }
     }
