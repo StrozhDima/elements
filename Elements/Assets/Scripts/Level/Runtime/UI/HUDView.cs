@@ -13,9 +13,10 @@ namespace Elements.Level
         [SerializeField]
         private Button _nextButton;
         [SerializeField]
-        private TextMeshProUGUI _levelIndexText;
+        private TextMeshProUGUI _levelText;
+        [SerializeField]
+        private string _levelTextKey;
 
-        private bool _initialized;
         private IObservable<Unit> _restartClicked;
         private IObservable<Unit> _nextClicked;
 
@@ -24,16 +25,10 @@ namespace Elements.Level
 
         void IHUDView.Initialize()
         {
-            if (_initialized)
-            {
-                throw new InvalidOperationException("HUD view is already initialized");
-            }
-
-            _initialized = true;
             _restartClicked = _restartButton.OnClickAsObservable().Share();
             _nextClicked = _nextButton.OnClickAsObservable().Share();
         }
 
-        void IHUDView.SetLevelIndex(int index) => _levelIndexText.text = $"Level {index + 1}";
+        void IHUDView.SetLevelNumber(int number) => _levelText.text = string.Format(_levelTextKey, number);
     }
 }

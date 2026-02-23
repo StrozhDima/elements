@@ -33,11 +33,7 @@ namespace Elements.Level
             Application.quitting += OnApplicationQuitting;
         }
 
-        void IDisposable.Dispose()
-        {
-            Application.quitting -= OnApplicationQuitting;
-            _presenter.DeInitialize();
-        }
+        void IDisposable.Dispose() => Application.quitting -= OnApplicationQuitting;
 
         private void OnApplicationQuitting() => _presenter.SaveProgress();
     }

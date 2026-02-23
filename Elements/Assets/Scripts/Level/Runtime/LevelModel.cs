@@ -1,4 +1,3 @@
-using Elements.Common;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -12,10 +11,8 @@ namespace Elements.Level
         private BlockType?[,] _cells;
         private BlockState[,] _states;
 
-        private int Width { get; set; }
-        int ILevelModel.Width => Width;
-        private int Height { get; set; }
-        int ILevelModel.Height => Height;
+        public int Width { get; private set; }
+        public int Height { get; private set; }
 
         BlockType? ILevelModel.GetBlockType(int col, int row) => _cells[col, row];
 

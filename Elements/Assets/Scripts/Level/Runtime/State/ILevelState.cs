@@ -2,7 +2,7 @@ using UniRx;
 
 namespace Elements.Level
 {
-    public interface ILevelStateModel
+    public interface ILevelState
     {
         IReadOnlyReactiveProperty<int> LevelIndex { get; }
         IReadOnlyReactiveProperty<bool> IsNormalizing { get; }

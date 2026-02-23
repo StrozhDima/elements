@@ -33,7 +33,7 @@ namespace Elements.Level
             Container.BindInterfacesTo<LevelEntryPoint>().AsSingle().WithArguments(_blockPoolWarmupSize);
             Container.BindInterfacesTo<BlockViewFactory>().AsSingle().WithArguments(_blockPrefabConfig, _blockPoolRoot);
             Container.BindInterfacesTo<GridLayout>().AsSingle().WithArguments(_gridLayoutConfig, _camera);
-            Container.BindInterfacesTo<LevelStateModel>().AsSingle();
+            Container.BindInterfacesTo<LevelState>().AsSingle();
             Container.BindInterfacesTo<SoLevelDataProvider>().AsSingle().WithArguments(_soLevelContainer);
             Container.BindInterfacesTo<SwipeInputProvider>().FromInstance(_swipeInputProvider).AsSingle();
             Container.BindInterfacesTo<SaveService>().AsSingle();

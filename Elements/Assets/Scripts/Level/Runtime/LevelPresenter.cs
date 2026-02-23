@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elements.SwipeInput;
@@ -8,14 +9,14 @@ using UnityEngine;
 namespace Elements.Level
 {
     [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-    public sealed class LevelPresenter : ILevelPresenter
+    public sealed class LevelPresenter : ILevelPresenter, IDisposable
     {
         private const int FirstLevelIndex = 0;
 
         private readonly ILevelModel _level;
         private readonly ILevelView _fieldView;
         private readonly IHUDPresenter _hudPresenter;
-        private readonly ILevelStateModel _state;
+        private readonly ILevelState _state;
         private readonly ILevelDataProvider _dataProvider;
         private readonly ISaveService _saveService;
         private readonly IMoveValidator _moveValidator;
@@ -29,7 +30,7 @@ namespace Elements.Level
             ILevelModel level,
             ILevelView fieldView,
             IHUDPresenter hudPresenter,
-            ILevelStateModel state,
+            ILevelState state,
             ILevelDataProvider dataProvider,
             ISaveService saveService,
             ISwipeInputProvider inputProvider)
@@ -53,12 +54,6 @@ namespace Elements.Level
             _hudPresenter.RestartRequested.Subscribe(_ => OnRestartRequested()).AddTo(_disposables);
             _hudPresenter.NextLevelRequested.Subscribe(_ => OnNextLevelRequested()).AddTo(_disposables);
             InitializeInput();
-        }
-
-        void ILevelPresenter.DeInitialize()
-        {
-            CancelNormalization();
-            _disposables.Dispose();
         }
 
         public void SaveProgress()
@@ -111,16 +106,16 @@ namespace Elements.Level
 
             if (!_state.IsNormalizing.Value)
             {
-                RunNormalizationAsync().Forget();
+                CancelNormalization();
+                _normalizationCts = new CancellationTokenSource();
+                RunNormalizationAsync(_normalizationCts.Token).Forget();
             }
         }
 
-        private async UniTaskVoid RunNormalizationAsync()
+        private async UniTaskVoid RunNormalizationAsync(CancellationToken cancellationToken)
         {
-            CancelNormalization();
             _state.SetNormalizing(true);
-            _normalizationCts = new CancellationTokenSource();
-            await _normalization.NormalizeAsync(_level, _normalizationCts.Token);
+            await _normalization.NormalizeAsync(_level, cancellationToken);
             _state.SetNormalizing(false);
 
             if (_level.IsEmpty())
@@ -184,6 +179,12 @@ namespace Elements.Level
                     _fieldView.RefreshBlock(col, row, _level.GetBlockType(col, row));
                 }
             }
+        }
+
+        void IDisposable.Dispose()
+        {
+            CancelNormalization();
+            _disposables.Dispose();
         }
     }
 }

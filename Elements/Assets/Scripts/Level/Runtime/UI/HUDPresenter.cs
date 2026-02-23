@@ -8,23 +8,25 @@ namespace Elements.Level
     public sealed class HUDPresenter : IHUDPresenter, IDisposable
     {
         private readonly IHUDView _view;
-        private readonly ILevelStateModel _state;
+        private readonly ILevelState _levelState;
 
         private IDisposable _disposable;
 
         IObservable<Unit> IHUDPresenter.RestartRequested => _view.RestartClicked;
         IObservable<Unit> IHUDPresenter.NextLevelRequested => _view.NextClicked;
 
-        public HUDPresenter(IHUDView view, ILevelStateModel state)
+        public HUDPresenter(
+            IHUDView view,
+            ILevelState levelState)
         {
             _view = view;
-            _state = state;
+            _levelState = levelState;
         }
 
         void IHUDPresenter.Initialize()
         {
             _view.Initialize();
-            _disposable = _state.LevelIndex.Subscribe(index => _view.SetLevelIndex(index));
+            _disposable = _levelState.LevelIndex.Subscribe(index => _view.SetLevelNumber(index + 1));
         }
 
         void IDisposable.Dispose() => _disposable?.Dispose();

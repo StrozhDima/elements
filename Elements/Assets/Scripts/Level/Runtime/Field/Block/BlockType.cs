@@ -1,4 +1,4 @@
-namespace Elements.Common
+namespace Elements.Level
 {
     public enum BlockType
     {

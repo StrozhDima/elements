@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -8,8 +7,6 @@ namespace Elements.Level
 {
     public sealed class BlockView : MonoBehaviour, IBlockView
     {
-        private const float DestroyAnimationDuration = 1.42f;
-
         private static readonly int _destroyAnimHash = Animator.StringToHash("Destroy");
 
         [SerializeField]
@@ -21,6 +18,11 @@ namespace Elements.Level
         [SerializeField]
         private Ease _fallEase = Ease.InQuad;
 
+        private StateExitBehaviour _destroyStateBehaviour;
+
+        private StateExitBehaviour DestroyStateBehaviour
+            => _destroyStateBehaviour ??= _animator.GetBehaviour<StateExitBehaviour>();
+
         void IBlockView.SetLocalPosition(Vector3 position) => transform.localPosition = position;
 
         void IBlockView.SetLocalScale(float scale) => transform.localScale = Vector3.one * scale;
@@ -30,10 +32,11 @@ namespace Elements.Level
         UniTask IBlockView.PlayFallAsync(Vector3 targetLocalPosition, CancellationToken cancellationToken)
             => transform.DOLocalMove(targetLocalPosition, _fallDuration).SetEase(_fallEase).WithCancellation(cancellationToken);
 
-        async UniTask IBlockView.PlayDestroyAsync(CancellationToken cancellationToken)
+        UniTask IBlockView.PlayDestroyAsync(CancellationToken cancellationToken)
         {
+            var awaiter = DestroyStateBehaviour.Exited.ToUniTask(useFirstValue: true, cancellationToken: cancellationToken);
             _animator.SetTrigger(_destroyAnimHash);
-            await UniTask.Delay(TimeSpan.FromSeconds(DestroyAnimationDuration), cancellationToken: cancellationToken);
+            return awaiter;
         }
     }
 }

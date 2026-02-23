@@ -918,7 +918,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Elements.UI::Elements.UI.HUDView
   _restartButton: {fileID: 1262739825}
   _nextButton: {fileID: 1504449102}
-  _levelIndexText: {fileID: 1762030860}
+  _levelText: {fileID: 1762030860}
+  _levelTextKey: Level {0}
 --- !u!1 &1034947653
 GameObject:
   m_ObjectHideFlags: 0

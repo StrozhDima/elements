@@ -9,6 +9,6 @@ namespace Elements.Level
         IObservable<Unit> NextClicked { get; }
 
         void Initialize();
-        void SetLevelIndex(int index);
+        void SetLevelNumber(int number);
     }
 }
