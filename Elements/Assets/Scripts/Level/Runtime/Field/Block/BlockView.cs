@@ -17,11 +17,8 @@ namespace Elements.Level
         private float _fallDuration = 0.25f;
         [SerializeField]
         private Ease _fallEase = Ease.InQuad;
-
-        private StateExitBehaviour _destroyStateBehaviour;
-
-        private StateExitBehaviour DestroyStateBehaviour
-            => _destroyStateBehaviour ??= _animator.GetBehaviour<StateExitBehaviour>();
+        [SerializeField]
+        private float _destroyDuration = 1.42f;
 
         void IBlockView.SetLocalPosition(Vector3 position) => transform.localPosition = position;
 
@@ -34,9 +31,8 @@ namespace Elements.Level
 
         UniTask IBlockView.PlayDestroyAsync(CancellationToken cancellationToken)
         {
-            var awaiter = DestroyStateBehaviour.Exited.ToUniTask(useFirstValue: true, cancellationToken: cancellationToken);
             _animator.SetTrigger(_destroyAnimHash);
-            return awaiter;
+            return UniTask.WaitForSeconds(_destroyDuration, cancellationToken: cancellationToken);
         }
     }
 }

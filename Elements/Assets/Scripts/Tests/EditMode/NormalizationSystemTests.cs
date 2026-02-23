@@ -16,7 +16,7 @@ namespace Elements.Tests
         [SetUp]
         public void SetUp()
         {
-            _system = new NormalizationSystem(new NullNormalizationView());
+            _system = new NormalizationSystem(new NullNormalizationView(), 3);
             _level = new LevelModel();
         }
 

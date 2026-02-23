@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6801cc15888704f9490b5fff2745df02, type: 3}
   m_Name: Level_1
   m_EditorClassIdentifier: Elements.Level::Elements.Level.LevelConfig
-  _width: 2
-  _height: 4
-  _cells: 0000000001000000000000000100000001000000000000000100000000000000
+  _rows:
+  - _cells: 00000000ffffffff000000000100000001000000
+  - _cells: 00000000ffffffff01000000ffffffffffffffff

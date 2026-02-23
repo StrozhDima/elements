@@ -12,6 +12,7 @@ namespace Elements.Level
     public sealed class LevelPresenter : ILevelPresenter, IDisposable
     {
         private const int FirstLevelIndex = 0;
+        private const int BlocksMergeMin = 3;
 
         private readonly ILevelModel _level;
         private readonly ILevelView _fieldView;
@@ -42,7 +43,7 @@ namespace Elements.Level
             _dataProvider = dataProvider;
             _saveService = saveService;
             _moveValidator = new MoveValidator(level);
-            _normalization = new NormalizationSystem(fieldView);
+            _normalization = new NormalizationSystem(fieldView, BlocksMergeMin);
             _inputProvider = inputProvider;
             _disposables = new CompositeDisposable();
         }

@@ -1,4 +1,4 @@
-using Elements.Common;
+using System;
 using UnityEngine;
 
 namespace Elements.Level
@@ -6,36 +6,32 @@ namespace Elements.Level
     [CreateAssetMenu(fileName = "Level", menuName = "Elements/Level Data")]
     public sealed class SoLevelData : ScriptableObject, ILevelData
     {
-        [SerializeField]
-        private int _width;
-        [SerializeField]
-        private int _height;
-        [SerializeField]
-        private int[] _cells;
+        [Serializable]
+        private struct RowData
+        {
+            [SerializeField]
+            private int[] _cells;
 
-        public int Width => _width;
-        public int Height => _height;
+            public int Count => _cells.Length;
+
+            public int GetCell(int col) => col >= 0 && col < Count ? _cells[col] : -1;
+        }
+
+        [SerializeField]
+        private RowData[] _rows;
+
+        public int Width => _rows.Length > 0 ? _rows[0].Count : 0;
+        public int Height => _rows.Length;
 
         public BlockType? GetCell(int col, int row)
         {
-            if (col < 0 || col >= _width || row < 0 || row >= _height)
+            if (col < 0 || col >= Width || row < 0 || row >= Height)
             {
                 return null;
             }
 
-            var index = (_height - 1 - row) * _width + col;
-
-            if (index < 0 || index >= _cells.Length)
-            {
-                return null;
-            }
-
-            return _cells[index] switch
-            {
-                0 => BlockType.Water,
-                1 => BlockType.Fire,
-                _ => null
-            };
+            var cell = _rows[row].GetCell(col);
+            return cell < 0 ? null : (BlockType)cell;
         }
     }
 }

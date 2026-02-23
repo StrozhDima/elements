@@ -8,8 +8,15 @@ namespace Elements.Level
     public sealed class NormalizationSystem : INormalizationSystem
     {
         private readonly INormalizationView _view;
+        private readonly int _minLineLength;
 
-        public NormalizationSystem(INormalizationView view) => _view = view;
+        public NormalizationSystem(
+            INormalizationView view,
+            int minLineLength)
+        {
+            _view = view;
+            _minLineLength = minLineLength;
+        }
 
         async UniTask INormalizationSystem.NormalizeAsync(ILevelModel level, CancellationToken cancellationToken)
         {
@@ -111,7 +118,7 @@ namespace Elements.Level
 
                     var region = FloodFill(level, col, row, visited);
 
-                    if (HasLineOfThree(region))
+                    if (HasLine(region))
                     {
                         result.AddRange(region);
                     }
@@ -162,7 +169,7 @@ namespace Elements.Level
             queue.Enqueue(new Vector2Int(col, row));
         }
 
-        private bool HasLineOfThree(List<Vector2Int> region)
+        private bool HasLine(List<Vector2Int> region)
         {
             var cellSet = new HashSet<Vector2Int>(region);
 
@@ -177,7 +184,7 @@ namespace Elements.Level
                     x++;
                 }
 
-                if (hCount >= 3)
+                if (hCount >= _minLineLength)
                 {
                     return true;
                 }
@@ -191,7 +198,7 @@ namespace Elements.Level
                     y++;
                 }
 
-                if (vCount >= 3)
+                if (vCount >= _minLineLength)
                 {
                     return true;
                 }
