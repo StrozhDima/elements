@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bd1414680adb4830a737c894921474e, type: 3}
+  m_Name: BalloonSpawnerConfig
+  m_EditorClassIdentifier: Elements.Level::Elements.Level.BalloonsBackgroundConfig
+  _maxBalloons: 3
+  _minSpawnInterval: 2
+  _maxSpawnInterval: 6
+  _minSpeed: 0.5
+  _maxSpeed: 2
+  _minAmplitude: 0.3
+  _maxAmplitude: 0.8
+  _minFrequency: 0.5
+  _maxFrequency: 1.5

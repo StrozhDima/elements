@@ -1,0 +1,22 @@
+{
+    "name": "Elements.Level",
+    "rootNamespace": "Elements",
+    "references": [
+        "Elements.Common",
+        "UniRx",
+        "UniTask",
+        "Zenject",
+        "Unity.TextMeshPro",
+        "UniTask.DOTween",
+        "Elements.SwipeInput"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
