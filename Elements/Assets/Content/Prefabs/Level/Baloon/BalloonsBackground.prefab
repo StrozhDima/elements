@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2849625693142279618}
   - component: {fileID: 1221947806733041124}
   m_Layer: 0
-  m_Name: BaloonsBackground
+  m_Name: BalloonsBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

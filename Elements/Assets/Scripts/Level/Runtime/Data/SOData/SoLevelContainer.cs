@@ -8,8 +8,6 @@ namespace Elements.Level
         [SerializeField]
         private SoLevelData[] _levels;
 
-        public int Count => _levels.Length;
-
         public SoLevelData GetLevel(int index) => _levels[index % _levels.Length];
     }
 }

@@ -687,6 +687,14 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2122830142208838839, guid: dda1ec61fca4648f5bd1dfd54322724b, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4687915129777535504, guid: dda1ec61fca4648f5bd1dfd54322724b, type: 3}
+      propertyPath: m_Name
+      value: BalloonsBackground
+      objectReference: {fileID: 0}
     - target: {fileID: 5106753951510273099, guid: dda1ec61fca4648f5bd1dfd54322724b, type: 3}
       propertyPath: m_Name
       value: Level

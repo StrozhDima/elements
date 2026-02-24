@@ -7,12 +7,16 @@ namespace Elements.Level
     {
         [SerializeField]
         private Transform _transform;
+        [SerializeField]
+        private SpriteRenderer _spriteRenderer;
 
         public event Action<BalloonView> OnExited;
 
         private BalloonViewData _data;
 
         public void Initialize(BalloonViewData data) => _data = data;
+
+        public void SetSortingOrder(int order) => _spriteRenderer.sortingOrder = order;
 
         private void Update()
         {

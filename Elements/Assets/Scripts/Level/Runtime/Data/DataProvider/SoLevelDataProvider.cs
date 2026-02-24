@@ -9,8 +9,6 @@ namespace Elements.Level
 
         public SoLevelDataProvider(SoLevelContainer container) => _container = container;
 
-        int ILevelDataProvider.Count => _container.Count;
-
         ILevelData ILevelDataProvider.GetLevel(int index) => _container.GetLevel(index);
     }
 }
