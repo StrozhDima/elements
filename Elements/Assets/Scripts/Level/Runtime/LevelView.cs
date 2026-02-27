@@ -40,11 +40,11 @@ namespace Elements.Level
             _gridLayout.Compute(width, height);
         }
 
-        void ILevelView.RefreshBlock(int col, int row, BlockType? type)
+        UniTask ILevelView.RefreshBlockAsync(int col, int row, BlockType? type, CancellationToken cancellationToken)
         {
             if (_blockTypes == null || _blockTypes[col, row] == type)
             {
-                return;
+                return UniTask.CompletedTask;
             }
 
             _blockTypes[col, row] = type;
@@ -57,15 +57,16 @@ namespace Elements.Level
 
             if (!type.HasValue)
             {
-                return;
+                return UniTask.CompletedTask;
             }
 
+            var position = _gridLayout.GetCellLocalPosition(col, row);
             var view = _blockViewFactory.Get(type.Value, _blockContainer);
-            view.SetLocalPosition(_gridLayout.GetCellLocalPosition(col, row));
-            view.SetLocalScale(_gridLayout.CellSize);
-            view.SetSortingOrder(row * _width + col);
-
             _blockViews[col, row] = view;
+            view.SetLocalScale(0f);
+            view.SetLocalPosition(position);
+            view.SetSortingOrder(row * _width + col);
+            return view.SetLocalScaleAnimatedAsync(_gridLayout.CellSize, cancellationToken);
         }
 
         void ILevelView.SwapBlocks(int colA, int rowA, int colB, int rowB)

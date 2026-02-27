@@ -1,8 +1,11 @@
+using System.Threading;
+using Cysharp.Threading.Tasks;
+
 namespace Elements.Level
 {
     public interface ILevelPresenter
     {
-        void Initialize();
+        UniTask InitializeAsync(CancellationToken cancellationToken);
         void SaveProgress();
     }
 }

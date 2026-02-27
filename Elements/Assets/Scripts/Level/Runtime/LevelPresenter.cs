@@ -25,6 +25,8 @@ namespace Elements.Level
         private readonly ISwipeInputProvider _inputProvider;
         private readonly CompositeDisposable _disposables;
 
+        private IDisposable _inputDisposable;
+        private CancellationTokenSource _initializeCts;
         private CancellationTokenSource _normalizationCts;
 
         public LevelPresenter(
@@ -48,13 +50,16 @@ namespace Elements.Level
             _disposables = new CompositeDisposable();
         }
 
-        void ILevelPresenter.Initialize()
+        async UniTask ILevelPresenter.InitializeAsync(CancellationToken cancellationToken)
         {
             InitializeLevelState();
-            InitializeField();
             _hudPresenter.RestartRequested.Subscribe(_ => OnRestartRequested()).AddTo(_disposables);
             _hudPresenter.NextLevelRequested.Subscribe(_ => OnNextLevelRequested()).AddTo(_disposables);
+            _initializeCts = new CancellationTokenSource();
+            await InitializeFieldAsync(CancellationTokenSource.CreateLinkedTokenSource(_initializeCts.Token, cancellationToken).Token);
             InitializeInput();
+            _normalizationCts = new CancellationTokenSource();
+            RunNormalizationAsync(_normalizationCts.Token).Forget();
         }
 
         public void SaveProgress()
@@ -72,17 +77,19 @@ namespace Elements.Level
             }
             else
             {
-                LoadLevel(FirstLevelIndex);
+                LoadLevelAsync(FirstLevelIndex, _initializeCts.Token).Forget();
             }
         }
 
-        private void InitializeField()
+        private UniTask InitializeFieldAsync(CancellationToken cancellationToken)
         {
             _fieldView.Setup(_level.Width, _level.Height);
-            RefreshAllBlocks();
+            return InitializeBlocksAsync(cancellationToken);
         }
 
-        private void InitializeInput() => _inputProvider.Swiped.Subscribe(HandleInputSwipe).AddTo(_disposables);
+        private void InitializeInput() => _inputDisposable = _inputProvider.Swiped.Subscribe(HandleInputSwipe);
+
+        private void DeInitializeInput() => _inputDisposable?.Dispose();
 
         private void HandleInputSwipe(SwipeInputData data)
         {
@@ -127,15 +134,19 @@ namespace Elements.Level
 
         private void OnRestartRequested()
         {
+            CancelInitialize();
             CancelNormalization();
             _state.SetNormalizing(false);
-            RestartLevel();
+            _initializeCts = new CancellationTokenSource();
+            RestartLevelAsync(_initializeCts.Token).Forget();
         }
 
         private void OnNextLevelRequested()
         {
+            CancelInitialize();
             CancelNormalization();
             _state.SetNormalizing(false);
+            _initializeCts = new CancellationTokenSource();
             LoadNextLevel();
         }
 
@@ -151,41 +162,64 @@ namespace Elements.Level
             _normalizationCts = null;
         }
 
+        private void CancelInitialize()
+        {
+            if (_initializeCts == null)
+            {
+                return;
+            }
+
+            _initializeCts.Cancel();
+            _initializeCts.Dispose();
+            _initializeCts = null;
+        }
+
         private void LoadNextLevel()
         {
             _saveService.Clear();
-            LoadLevel(_state.LevelIndex.Value + 1);
+            LoadLevelAsync(_state.LevelIndex.Value + 1, _initializeCts.Token).Forget();
         }
 
-        private void RestartLevel()
+        private async UniTaskVoid RestartLevelAsync(CancellationToken cancellationToken)
         {
+            DeInitializeInput();
             _saveService.Clear();
             _level.LoadFromLevel(_dataProvider.GetLevel(_state.LevelIndex.Value));
-            InitializeField();
+            await InitializeFieldAsync(cancellationToken);
+            InitializeInput();
         }
 
-        private void LoadLevel(int index)
+        private async UniTaskVoid LoadLevelAsync(int index, CancellationToken cancellationToken)
         {
+            DeInitializeInput();
             _state.SetLevelIndex(index);
             _level.LoadFromLevel(_dataProvider.GetLevel(index));
-            InitializeField();
+            await InitializeFieldAsync(cancellationToken);
+            InitializeInput();
         }
 
-        private void RefreshAllBlocks()
+        private async UniTask InitializeBlocksAsync(CancellationToken cancellationToken)
         {
-            for (var col = 0; col < _level.Width; col++)
+            for (var col = 0; col < _level.Height; col++)
             {
-                for (var row = 0; row < _level.Height; row++)
+                var reverse = col % 2 != 0;
+                var levelWidth = _level.Width;
+
+                for (var row = 0; row < levelWidth; row++)
                 {
-                    _fieldView.RefreshBlock(col, row, _level.GetBlockType(col, row));
+                    var realRow = reverse ? levelWidth - 1 - row : row;
+                    var blockType = _level.GetBlockType(realRow, col);
+                    await _fieldView.RefreshBlockAsync(realRow, col, blockType, cancellationToken);
                 }
             }
         }
 
         void IDisposable.Dispose()
         {
-            CancelNormalization();
             _disposables.Dispose();
+            CancelNormalization();
+            CancelInitialize();
+            DeInitializeInput();
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Threading;
 using Elements.SwipeInput;
 using UnityEngine;
 using Zenject;
@@ -25,8 +26,11 @@ namespace Elements.Level
         [SerializeField]
         private int _blockPoolWarmupSize = 8;
 
+        private readonly CancellationTokenSource _sceneTokenSource = new();
+
         public override void InstallBindings()
         {
+            Container.BindInstance(_sceneTokenSource.Token).AsSingle();
             Container.BindInterfacesTo<LevelModel>().AsSingle();
             Container.BindInterfacesTo<LevelPresenter>().AsSingle().WithArguments(_levelView);
             Container.BindInterfacesTo<HUDPresenter>().AsSingle().WithArguments(_hudView);
@@ -37,6 +41,12 @@ namespace Elements.Level
             Container.BindInterfacesTo<SoLevelDataProvider>().AsSingle().WithArguments(_soLevelContainer);
             Container.BindInterfacesTo<SwipeInputProvider>().FromInstance(_swipeInputProvider).AsSingle();
             Container.BindInterfacesTo<SaveService>().AsSingle();
+        }
+
+        private void OnDestroy()
+        {
+            _sceneTokenSource.Cancel();
+            _sceneTokenSource.Dispose();
         }
     }
 }

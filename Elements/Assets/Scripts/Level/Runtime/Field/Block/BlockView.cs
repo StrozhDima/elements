@@ -18,11 +18,22 @@ namespace Elements.Level
         [SerializeField]
         private Ease _fallEase = Ease.InQuad;
         [SerializeField]
+        private float _scaleDuration = 0.2f;
+        [SerializeField]
+        private AnimationCurve _scaleEase;
+        [SerializeField]
         private float _destroyDuration = 1.42f;
 
         void IBlockView.SetLocalPosition(Vector3 position) => transform.localPosition = position;
 
         void IBlockView.SetLocalScale(float scale) => transform.localScale = Vector3.one * scale;
+
+        public UniTask SetLocalScaleAnimatedAsync(float scale, CancellationToken cancellationToken)
+        {
+            var targetScale = Vector3.one * scale;
+            return transform.DOScale(targetScale, _scaleDuration).SetEase(_scaleEase).SetLink(gameObject)
+                .ToUniTask(cancellationToken: cancellationToken);
+        }
 
         void IBlockView.SetSortingOrder(int order) => _spriteRenderer.sortingOrder = order;
 
